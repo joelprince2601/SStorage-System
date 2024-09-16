@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import tkinter as tk
+from tkinter import messagebox
 
 # Load YOLOv4 model
 net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
@@ -41,6 +43,14 @@ exp_value = {name: 0 for name in target_classes.values()}  # 0 = not detected, 1
 
 last_update = datetime.now()
 
+# Create tkinter root window for popups (hidden initially)
+root = tk.Tk()
+root.withdraw()  # Hide the root window as we only need the popups
+
+def show_popup(product_name):
+    """Show a popup when a product is about to expire."""
+    messagebox.showwarning("Expiry Warning", f"{product_name} is about to expire in 1 day!")
+
 def update_expiry_dates():
     global last_update
     now = datetime.now()
@@ -49,6 +59,11 @@ def update_expiry_dates():
             # Update expiry date only if exp_value is 1 and the product is detected
             if exp_value[product] == 1 and expiry_tracking[product] > 0:
                 expiry_tracking[product] -= 1
+
+                # Check if the product is about to expire (1 day left)
+                if expiry_tracking[product] == 1:
+                    show_popup(product)  # Trigger popup if product has 1 day left
+
         last_update = now
 
 def draw_boxes(frame, detections, conf_threshold=0.5, nms_threshold=0.4):
